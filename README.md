@@ -18,6 +18,6 @@ If you are not familiar with the information above I recommend you take a look a
 
 You should have base-devel, python, pip and socat installed:
 ```sh
-$ sudo pacman -S base-devel python, python-pip socat
+$ sudo pacman -S base-devel python python-pip socat
 ``` 
 
