@@ -16,6 +16,7 @@ def HowToUsePixieBoardGPSLocation():
 
 		#Get Location on class
 		pxbdGPS.WaitUntilGPSIsAvailablePretty()
+		pxbdGPS.SetCellProviderLocationData()
 
 		print("UTC Time: {}\n" \
                 "Latitude: {}\n" \
