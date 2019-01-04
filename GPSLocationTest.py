@@ -41,7 +41,7 @@ def HowToUsePixieBoardGPSLocation():
 			pxbdGPS.SpeedOverGroundKnots, \
 			pxbdGPS.Date, \
 			pxbdGPS.NumberOfSatellites, \
-			pxbdGPS.CellID, \
+			pxbdGPS.CellId, \
 			pxbdGPS.LOC))
 	else:
 		print("Execute:\nsudo enablePixieModem\nWait for 30 seconds ")
