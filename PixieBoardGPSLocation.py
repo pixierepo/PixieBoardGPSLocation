@@ -7,12 +7,14 @@ from results import Results
 
 CHECK_MODEM_STATUS = "mmcli -L | grep No | wc -l"
 ZERO_STRING = "0"
+ERROR_STRING = "error"
+COMMAND_OK_CALLBACK = "response"
 PIXIE_BOARDS_PASSWORD = "pixiepro"
 SESSION_STATUS = "mmcli -m 0 --command='AT+QGPS?' | grep 'QGPS:' | awk '{print $3}'"
 STOP_SESSION = "mmcli -m 0 --command='AT+QGPSEND'"
 CONFIGURE_GPS_TRACKING = "mmcli -m 0 --command='AT+QGPS=1,30,50,0,1'"
 GET_GPS_LOCATION = "mmcli -m 0 --command='AT+QGPSLOC?'"
-GET_GPS_LOCATION_PRETTY = "mmcli -m 0 --command='AT+QGPSLOC=2'"
+GET_GPS_LOCATION_PRETTY = "mmcli -m 0 --command='AT+QGPSLOC=2' | grep '+QGPSLOC:'"
 GET_CELL_ID = "mmcli -m 0 --location-get | grep 'Cell ID' | awk '{print $4}'"
 GET_LOCATION_AREA_CODE = "mmcli -m 0 --location-get | grep 'Location area code' | awk '{print $5}'"
 GET_MOBILE_NETWORK_CODE = "mmcli -m 0 --location-get | grep 'Mobile network code' | awk '{print $5}'"
@@ -22,7 +24,7 @@ GET_PROVIDER = "mmcli -m 0 | grep 'operator name' | awk '{print $4}'"
 GET_PROVIDER_ID = "mmcli -m 0 | grep 'operator id' | awk '{print $4}'"
 GET_SIGNAL_LEVEL = "mmcli -m 0 | grep 'signal quality' | awk '{print $4}'"
 
-class PixieBoardGPSLocation():		
+class PixieBoardGPSLocation():
 
 	def __init__(self):
 
@@ -48,135 +50,115 @@ class PixieBoardGPSLocation():
 		self.ProviderID = ""
 		self.SignalLevel = ""
 
-	@classmethod
-	def CheckModemStatus():
-		(command_output, error) = SendShellCommand(CHECK_MODEM_STATUS)
-		if ParseCheckForValueZero(command_output):
+	def CheckModemStatus(self):
+		(command_output, error) = self.SendShellCommand(CHECK_MODEM_STATUS)
+		if self.ParseCheckForValueZero(command_output):
 			return True, command_output, error
 		else:
 			return False, command_output, error
 
-	@classmethod
-	def StopSession(shell_command=STOP_SESSION):
-		sessionStatus, sessionOutput, sessionError = SessionStatus()
+	def StopSession(self, shell_command=STOP_SESSION):
+		sessionStatus, sessionOutput, sessionError = self.SessionStatus()
 		if sessionStatus:
-			(command_output, error) = SendShellCommand(shell_command)
-			if ParseOKInMsg(command_output):
+			(command_output, error) = self.SendShellCommand(shell_command)
+			if self.ParseOKInMsg(command_output):
 				return True, command_output, error
 			else:
 				return False, command_output, error
 		else:
 			return False, sessionOutput, sessionError
 
-	@classmethod
-	def SessionStatus(shell_command=SESSION_STATUS):
-		(command_output, error) = PixieBoardGPSLocation.SendShellCommand(shell_command)
-		if (str(command_output)[-4:-3]) == "1":
+	def SessionStatus(self, shell_command=SESSION_STATUS):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		if "1" in str(command_output):
 			return True, command_output, error
 		else:
 			return False, command_output, error
 
-	@classmethod
-	def GetCellId(shell_command=GET_CELL_ID):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.CellId = ParseCommandLineValue(command_output)
+	def GetCellId(self, shell_command=GET_CELL_ID):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.CellId = self.ParseCommandLineValue(command_output)
 		return self.CellId
 
-	@classmethod
-	def GetLocationAreaCode(shell_command=GET_LOCATION_AREA_CODE):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.LocationAreaCode = ParseCommandLineValue(command_output)
+	def GetLocationAreaCode(self, shell_command=GET_LOCATION_AREA_CODE):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.LocationAreaCode = self.ParseCommandLineValue(command_output)
 		return self.LocationAreaCode
 
-	@classmethod
-	def GetMobileNetworkCode(shell_command=GET_MOBILE_NETWORK_CODE):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.MobileNetworkCode = ParseCommandLineValue(command_output)
+	def GetMobileNetworkCode(self, shell_command=GET_MOBILE_NETWORK_CODE):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.MobileNetworkCode = self.ParseCommandLineValue(command_output)
 		return self.MobileNetworkCode
 
-	@classmethod
-	def GetMobileCountryCode(shell_command=GET_MOBILE_COUNTRY_CODE):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.MobileCountryCode = ParseCommandLineValue(command_output)
+	def GetMobileCountryCode(self, shell_command=GET_MOBILE_COUNTRY_CODE):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.MobileCountryCode = self.ParseCommandLineValue(command_output)
 		return self.MobileCountryCode
 
-	@classmethod
-	def GetIMEI(shell_command=GET_IMEI):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.IMEI = ParseCommandLineValue(command_output)
+	def GetIMEI(self, shell_command=GET_IMEI):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.IMEI = self.ParseCommandLineValue(command_output)
 		return self.IMEI
 
-	@classmethod
-	def GetProvider(shell_command=GET_PROVIDER):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.Provider = ParseCommandLineValue(command_output)
+	def GetProvider(self, shell_command=GET_PROVIDER):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.Provider = self.ParseCommandLineValue(command_output)
 		return self.Provider
 
-	@classmethod
-	def GetProviderID(shell_command=GET_PROVIDER_ID):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.ProviderID = ParseCommandLineValue(command_output)
+	def GetProviderID(self, shell_command=GET_PROVIDER_ID):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.ProviderID = self.ParseCommandLineValue(command_output)
 		return self.ProviderID
 
-	@classmethod
-	def GetSignalLevel(shell_command=GET_SIGNAL_LEVEL):
-		(command_output, error) = SendShellCommand(shell_command)
-		self.SignalLevel = ParseCommandLineValue(command_output)
+	def GetSignalLevel(self, shell_command=GET_SIGNAL_LEVEL):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		self.SignalLevel = self.ParseCommandLineValue(command_output)
 		return self.SignalLevel
 
-	@classmethod
-	def SetCellProviderLocationData():
-		GetCellId()
-		GetLocationAreaCode()
-		GetMobileNetworkCode()
-		GetMobileCountryCode()
-		GetIMEI()
-		GetProvider()
-		GetProviderID()
-		GetSignalLevel()
+	def SetCellProviderLocationData(self):
+		self.GetCellId()
+		self.GetLocationAreaCode()
+		self.GetMobileNetworkCode()
+		self.GetMobileCountryCode()
+		self.GetIMEI()
+		self.GetProvider()
+		self.GetProviderID()
+		self.GetSignalLevel()
 
-	@classmethod
-	def ConfigureGPSTracking(shell_command=CONFIGURE_GPS_TRACKING):
-		StopSession()
-		(command_output, error) = SendShellCommand(shell_command)
-		if ParseOKInMsg(command_output):
+	def ConfigureGPSTracking(self, shell_command=CONFIGURE_GPS_TRACKING):
+		self.StopSession()
+		(command_output, error) = self.SendShellCommand(shell_command)
+
+	def GetGPSLocation(self, shell_command=GET_GPS_LOCATION):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		if self.ParseErrorInMsg(command_output):
+			return False, command_output, error
+		else:
+			self.ParseGPSLocation(command_output)
+			return True, command_output, error
+
+	def GetGPSLocationPretty(self, shell_command=GET_GPS_LOCATION_PRETTY):
+		(command_output, error) = self.SendShellCommand(shell_command)
+		if self.ParseOKInMsg(command_output):
+			self.ParseGPSLocation(command_output)
 			return True, command_output, error
 		else:
 			return False, command_output, error
 
-	@classmethod
-	def GetGPSLocation(shell_command=GET_GPS_LOCATION):
-		(command_output, error) = SendShellCommand(shell_command)
-		if ParseOKInMsg(command_output):
-			ParseGPSLocation(command_output)
-			return True, command_output, error
-		else:
-			return False, command_output, error
-
-	@classmethod
-	def GetGPSLocationPretty(shell_command=GET_GPS_LOCATION_PRETTY):
-		(command_output, error) = SendShellCommand(shell_command)
-		if ParseOKInMsg(command_output):
-			ParseGPSLocation(command_output)
-			return True, command_output, error
-		else:
-			return False, command_output, error
-
-	@classmethod
-	def WaitUntilGPSIsAvailablePretty():
+	def WaitUntilGPSIsAvailablePretty(self):
 		while True:
-			signalReady, raw, error = GetGPSLocationPretty()
+			signalReady, raw, error = self.GetGPSLocationPretty()
 			if signalReady:
 				break
 			else:
 				time.sleep(8)
 
-	@classmethod
-	def NAttemptsToGetLocationPretty(attempts):
+	def NAttemptsToGetLocationPretty(self, attempts):
 		attemptCounter = 0
 		while True:
+			print("Attempt: {}".format(attemptCounter))
 			attemptCounter = attemptCounter + 1
-			signalReady, raw, error = GetGPSLocationPretty()
+			signalReady, raw, error = self.GetGPSLocationPretty()
 			if signalReady:
 				break
 			elif attemptCounter == attempts:
@@ -184,24 +166,14 @@ class PixieBoardGPSLocation():
 			else:
 				time.sleep(8)
 
-	@classmethod
-	def SendShellCommand(shellCommand):
-		print(shellCommand)
-		logging.debug('Executing: ' + str(cmd))
-		command = subprocess.Popen([shellCommand], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-		stack = inspect.stack()
-		fname = os.path.basename(stack[1][1])
-		line = str(stack[1][2])
-		caller = stack[1][3]
-		Results.add_step(fname + '(' + line + '): ' + caller + '(): ' + cmd)
-		res = '\n'.join(cmd_obj.communicate())
-		print(res.strip())
+	def SendShellCommand(self, shellCommand):
+		print("Excecuting: {}".format(shellCommand))
+		command = subprocess.Popen([shellCommand], stdout=subprocess.PIPE, shell=True)
 		(command_output, error) = command.communicate()
-		print(command_output)
+		print("Command Output: {}".format(command_output))
 		return command_output, error
 
-	@classmethod
-	def ParseGPSLocation(command_output):
+	def ParseGPSLocation(self, command_output):
 		print(command_output)
 		locationData = str(command_output).split(",")
 		try:
@@ -231,16 +203,21 @@ class PixieBoardGPSLocation():
 			self.NumberOfSatellites = 0
             
 
-	@classmethod
-	def ParseOKInMsg(command_output):
+	def ParseOKInMsg(self, command_output):
 		output = str(command_output)
 		if COMMAND_OK_CALLBACK in output:
 			return True
 		else:
 			return False
+        
+	def ParseErrorInMsg(self, command_output):
+		output = str(command_output)
+		if ERROR_STRING in output:
+			return True
+		else:
+			return False
 
-	@classmethod
-	def ParseCheckForValueZero(command_output):
+	def ParseCheckForValueZero(self, command_output):
 		output = str(command_output)
 		print(output)
 		if ZERO_STRING in output:
@@ -248,8 +225,7 @@ class PixieBoardGPSLocation():
 		else:
 			return False
 
-	@classmethod
-	def ParseCommandLineValue(value_raw):
+	def ParseCommandLineValue(self, value_raw):
 		value = str(value_raw)[3:-4]
 		return value
 
