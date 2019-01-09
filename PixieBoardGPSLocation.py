@@ -70,7 +70,7 @@ class PixieBoardGPSLocation():
 
 	@classmethod
 	def SessionStatus(shell_command=SESSION_STATUS):
-		(command_output, error) = SendShellCommand(shell_command)
+		(command_output, error) = PixieBoardGPSLocation.SendShellCommand(shell_command)
 		if (str(command_output)[-4:-3]) == "1":
 			return True, command_output, error
 		else:
