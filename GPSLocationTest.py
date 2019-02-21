@@ -9,7 +9,7 @@ def HowToUsePixieBoardGPSLocation():
 	isModemEnabled, out, error = pxbdGPS.CheckModemStatus()
 	if isModemEnabled:
 		# Enable AT Commands
-		pxbdGPS.EnableATCommands()
+		
 
 		#Configure GPS Session
 		pxbdGPS.ConfigureGPSTracking()
